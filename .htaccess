@@ -1,0 +1,60 @@
+# I-CORE — configuración para Hostinger (LiteSpeed/Apache).
+# El archivo _redirects solo lo usan Netlify/Cloudflare; acá manda este archivo.
+
+Options -Indexes
+DirectoryIndex index.html
+DirectorySlash Off
+ErrorDocument 404 /404.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # URLs del sitio anterior
+  RewriteRule ^NODO\sContacto\.html$ https://icoregroup.tech/contacto [R=301,L,NC]
+
+  # Dominio canónico: somo-icore.com y www → icoregroup.tech
+  RewriteCond %{HTTP_HOST} !^icoregroup\.tech$ [NC]
+  RewriteRule ^ https://icoregroup.tech%{REQUEST_URI} [R=301,L,NE]
+
+  # Forzar HTTPS (contempla la CDN de Hostinger, que termina TLS adelante)
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L,NE]
+
+  # /index.html y /seccion/index.html → URL limpia
+  RewriteCond %{THE_REQUEST} \s/+(.*?)/?index\.html[\s?] [NC]
+  RewriteRule ^ https://icoregroup.tech/%1 [R=301,L,NE]
+
+  # Barra final fuera (/nodo/ → /nodo), igual que los canonical
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^(.+)/$ https://icoregroup.tech/$1 [R=301,L]
+
+  # /nodo → nodo/index.html sin redirigir
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteCond %{REQUEST_FILENAME}/index.html -f
+  RewriteRule ^(.+)$ $1/index.html [L]
+</IfModule>
+
+# Assets con hash: caché de 1 año. HTML: siempre revalidar.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css|woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.(svg|png)$">
+    Header set Cache-Control "public, max-age=604800"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript image/svg+xml application/xml text/plain
+</IfModule>
+
+# No exponer archivos de configuración
+<FilesMatch "^(_redirects|\.git.*)$">
+  Require all denied
+</FilesMatch>

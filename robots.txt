@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://somo-icore.com/sitemap.xml
+Sitemap: https://icoregroup.tech/sitemap.xml
