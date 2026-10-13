@@ -11,6 +11,8 @@ ErrorDocument 404 /404.html
 
   # URLs del sitio anterior
   RewriteRule ^NODO\sContacto\.html$ https://icoregroup.tech/contacto [R=301,L,NC]
+  # HEN (y el nombre provisorio VITA) ahora es PLEXO
+  RewriteRule ^(hen|vita)(/.*)?$ https://icoregroup.tech/plexo [R=301,L,NC]
 
   # Dominio canónico: somo-icore.com y www → icoregroup.tech
   RewriteCond %{HTTP_HOST} !^icoregroup\.tech$ [NC]
