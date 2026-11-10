@@ -1,18 +1,21 @@
-# I-CORE — configuración para Hostinger (LiteSpeed/Apache).
-# El archivo _redirects solo lo usan Netlify/Cloudflare; acá manda este archivo.
+# iCore — configuración para Hostinger (LiteSpeed/Apache).
+# El sitio es una sola página (index.html) con secciones por # (/#nodo, /#plexo, /#contacto).
 
 Options -Indexes
 DirectoryIndex index.html
 DirectorySlash Off
-ErrorDocument 404 /404.html
+# Una URL que no existe muestra la portada, con código 404.
+ErrorDocument 404 /index.html
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # URLs del sitio anterior
-  RewriteRule ^NODO\sContacto\.html$ https://icoregroup.tech/contacto [R=301,L,NC]
-  # HEN (y el nombre provisorio VITA) ahora es PLEXO
-  RewriteRule ^(hen|vita)(/.*)?$ https://icoregroup.tech/plexo [R=301,L,NC]
+  # URLs de las versiones anteriores → su sección en la página única
+  RewriteRule ^nodo(/.*)?$ https://icoregroup.tech/#nodo [R=301,L,NC,NE]
+  RewriteRule ^(plexo|hen|vita)(/.*)?$ https://icoregroup.tech/#plexo [R=301,L,NC,NE]
+  RewriteRule ^contacto(/.*)?$ https://icoregroup.tech/#contacto [R=301,L,NC,NE]
+  RewriteRule ^NODO\sContacto\.html$ https://icoregroup.tech/#contacto [R=301,L,NC,NE]
+  RewriteRule ^nosotros(/.*)?$ https://icoregroup.tech/ [R=301,L,NC]
 
   # Dominio canónico: somo-icore.com y www → icoregroup.tech
   RewriteCond %{HTTP_HOST} !^icoregroup\.tech$ [NC]
@@ -23,26 +26,14 @@ ErrorDocument 404 /404.html
   RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L,NE]
 
-  # /index.html y /seccion/index.html → URL limpia
-  RewriteCond %{THE_REQUEST} \s/+(.*?)/?index\.html[\s?] [NC]
-  RewriteRule ^ https://icoregroup.tech/%1 [R=301,L,NE]
-
-  # Barra final fuera (/nodo/ → /nodo), igual que los canonical
-  RewriteCond %{REQUEST_FILENAME} -d
-  RewriteRule ^(.+)/$ https://icoregroup.tech/$1 [R=301,L]
-
-  # /nodo → nodo/index.html sin redirigir
-  RewriteCond %{REQUEST_FILENAME} -d
-  RewriteCond %{REQUEST_FILENAME}/index.html -f
-  RewriteRule ^(.+)$ $1/index.html [L]
+  # /index.html → /
+  RewriteCond %{THE_REQUEST} \s/+index\.html[\s?] [NC]
+  RewriteRule ^ https://icoregroup.tech/ [R=301,L]
 </IfModule>
 
-# Assets con hash: caché de 1 año. HTML: siempre revalidar.
 <IfModule mod_headers.c>
-  <FilesMatch "\.(js|css|woff2)$">
-    Header set Cache-Control "public, max-age=31536000, immutable"
-  </FilesMatch>
-  <FilesMatch "\.(svg|png)$">
+  # Videos y pósters: una semana. La página: siempre revalidar.
+  <FilesMatch "\.(mp4|jpg|png|svg)$">
     Header set Cache-Control "public, max-age=604800"
   </FilesMatch>
   <FilesMatch "\.html$">
@@ -53,10 +44,10 @@ ErrorDocument 404 /404.html
 </IfModule>
 
 <IfModule mod_deflate.c>
-  AddOutputFilterByType DEFLATE text/html text/css application/javascript image/svg+xml application/xml text/plain
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript image/svg+xml application/xml text/plain application/json
 </IfModule>
 
 # No exponer archivos de configuración
-<FilesMatch "^(_redirects|\.git.*)$">
+<FilesMatch "^\.git.*$">
   Require all denied
 </FilesMatch>
